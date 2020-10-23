@@ -1,4 +1,4 @@
-class Slider {
+class AsyncSliderWithPagination {
     constructor(callbackPromise, ctnrSelector, perPage) {
         this.$ctnr = document.querySelector(ctnrSelector);
         this.currentSlide = 0;
@@ -7,8 +7,9 @@ class Slider {
         this.canSlide = true;
         this.callbackPromise = callbackPromise;
         this.callbackPromise(1)
-        .then(slides => {
-            this.slides = slides;
+        .then(({slides, totalPages}) => {
+            this.slides     = slides;
+            this.totalPages = totalPages;
             this.init();
             this.displaySlides();
         })
@@ -36,8 +37,8 @@ class Slider {
         $slideBtnsCtnr.appendChild($slideBtnRight);
         
         const $paginationCtnr = document.createElement('nav');
-        $paginationCtnr.className = 'slider-pagination-nav';
-        new Pagination();
+        $paginationCtnr.className = 'pagination-nav-ctnr';
+        new Pagination($paginationCtnr, this);
        
         this.$ctnr.appendChild($slideBtnsCtnr);
         this.$ctnr.appendChild(this.$slidesCtnr);
@@ -59,6 +60,18 @@ class Slider {
             if (i === 0) {
                 $slideTxtElt.style.animation = 'card-appearence 0.4s linear forwards 2s';
             }
+        });
+    }
+
+    loadItems(pageNumber) {
+        this.callbackPromise(pageNumber)
+        .then(({slides}) => {
+            this.slides         = slides;
+            this.displaySlides();
+        })
+        .catch(err => {
+            alert('Une erreur est survenue');
+            console.log(err);
         });
     }
 
@@ -106,14 +119,61 @@ class Slider {
 }
 
 class Pagination {
-    constructor(paginationCtnr, totalPageNumber) {
-        this.totalPageNumber = totalPageNumber;
+    constructor(paginationCtnr, ctxt) {
+        this.currentPage = 1;
+        this.totalPageNumber = ctxt.totalPages;
         this.$ul = document.createElement('ul');
         paginationCtnr.appendChild(this.$ul);
-        this.init();
+        this.init(ctxt);
     }
 
-    init() {
+    init(ctxt) {
+        this.$ul.innerHTML = '';
+        if(this.totalPageNumber <= 10) {
+            for(let i = 1; i <= this.totalPageNumber; i ++) {
+                this.createPageNumber(i, ctxt);
+            }
+        } else if(this.currentPage <= 6) {
+            for(let i = 1; i <= 10; i ++) {
+                this.createPageNumber(i, ctxt);
+            }
+            const $li = document.createElement('li');
+            this.$ul.appendChild($li);
+            $li.innerText = '...';
 
+            this.createPageNumber(this.totalPageNumber, ctxt);
+        } else {
+            this.createPageNumber(1, ctxt);
+            const $li = document.createElement('li');
+            this.$ul.appendChild($li);
+            $li.innerText = '...';
+            for(let i = this.currentPage - 4; i <= this.currentPage + 4; i ++) {
+                this.createPageNumber(i, ctxt);
+                if(i === this.totalPageNumber) {
+                    break;
+                }
+            }
+            if(this.currentPage + 4 < this.totalPageNumber) {
+                if(this.currentPage + 4 < this.totalPageNumber - 1) {
+                    const $li = document.createElement('li');
+                    this.$ul.appendChild($li);
+                    $li.innerText = '...';
+                }
+                this.createPageNumber(this.totalPageNumber, ctxt);
+            }
+        }
+    }
+
+    createPageNumber(pageNumber, ctxt){
+        const $li = document.createElement('li');
+        this.$ul.appendChild($li);
+        const $btn = document.createElement('button');
+        $btn.innerText = pageNumber;
+        $li.appendChild($btn);
+        $btn.addEventListener('click', () => {
+            ctxt.loadItems(pageNumber);
+            this.currentPage = pageNumber;
+            this.init(ctxt);
+        });
     }
 }

@@ -11,12 +11,11 @@ const loadSeries = pageNumber => {
                 if (xhr.status >= 200 && xhr.status < 300) {
                     const response = JSON.parse(xhr.response);
                     const tvShows = response.results;
-                    console.log(JSON.parse(xhr.response));
                     
                     const slides = tvShows.map(show => {
                         return { src: urlImgPrefix + show.poster_path, txt: `<h5>${show.name}</h5><p>${show.overview}</p>` }
                     });     
-                    resolve(slides);
+                    resolve({slides, totalPages: response.total_pages});
                 } else {
                     reject({msg: 'Bad status', status: xhr.status});
                 }
@@ -31,4 +30,4 @@ const loadSeries = pageNumber => {
 }
 
 
-new Slider(loadSeries, '.my-slider', 20);
+new AsyncSliderWithPagination(loadSeries, '.my-slider', 20);
