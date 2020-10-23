@@ -1,10 +1,11 @@
 class Slider {
-    constructor(slides, ctnrSelector, perPage) {
+    constructor(slides, ctnrSelector) {
         this.$ctnr = document.querySelector(ctnrSelector);
-        this.perPage = perPage;
         this.currentSlide = 0;
         this.$slidesCtnr = document.createElement('div');
         this.slides = slides;
+        this.perPage = this.slides.length;
+        this.canSlide = true;
         this.init();
         this.displaySlides();
     }
@@ -49,11 +50,45 @@ class Slider {
     }
 
     slideLeft() {
-        
+        if(!this.canSlide || this.currentSlide === 0) {
+            return;
+        }
+
+        this.canSlide = false;
+        let marginLeft  = this.currentSlide * -100;
+        const limit     = marginLeft + 100;
+ 
+        const interval = window.setInterval(() => {
+            marginLeft += 2;
+            this.$slidesCtnr.style.marginLeft = marginLeft + '%';
+
+            if(marginLeft >= limit) {
+                this.currentSlide --;
+                this.canSlide = true;
+                window.clearInterval(interval);
+            }
+        }, 20);
     }
 
     slideRight() {
-        
+        if(!this.canSlide || this.currentSlide === this.perPage - 1) {
+            return;
+        }
+
+        this.canSlide = false;
+        let marginLeft  = this.currentSlide * -100;
+        const limit     = marginLeft - 100;
+ 
+        const interval = window.setInterval(() => {
+            marginLeft -= 2;
+            this.$slidesCtnr.style.marginLeft = marginLeft + '%';
+
+            if(marginLeft <= limit) {
+                this.currentSlide ++;
+                this.canSlide = true;
+                window.clearInterval(interval);
+            }
+        }, 20);
     }
 }
 
