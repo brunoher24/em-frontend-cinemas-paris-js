@@ -1,19 +1,27 @@
 class Slider {
-    constructor(slides, ctnrSelector) {
+    constructor(callbackPromise, ctnrSelector, perPage) {
         this.$ctnr = document.querySelector(ctnrSelector);
         this.currentSlide = 0;
         this.$slidesCtnr = document.createElement('div');
-        this.slides = slides;
-        this.perPage = this.slides.length;
+        this.perPage = perPage;
         this.canSlide = true;
-        this.init();
-        this.displaySlides();
+        this.callbackPromise = callbackPromise;
+        this.callbackPromise(1)
+        .then(slides => {
+            this.slides = slides;
+            this.init();
+            this.displaySlides();
+        })
+        .catch(err => {
+            alert('Une erreur est survenue');
+            console.log(err);
+        });
     }
 
     init() {
         this.$slidesCtnr.className = 'my-slider-ctnr';
         this.$slidesCtnr.style.display = 'flex';
-        this.$slidesCtnr.style.height = '100%';
+        this.$slidesCtnr.style.height = 'calc(100% - 40px)';
         this.$slidesCtnr.style.width = `${this.slides.length}00%`;
 
         const $slideBtnsCtnr = document.createElement('div');
@@ -26,9 +34,14 @@ class Slider {
         $slideBtnRight.innerText = 'Suivant';
         $slideBtnRight.addEventListener('click', () => { this.slideRight(); });
         $slideBtnsCtnr.appendChild($slideBtnRight);
+        
+        const $paginationCtnr = document.createElement('nav');
+        $paginationCtnr.className = 'slider-pagination-nav';
+        new Pagination();
        
         this.$ctnr.appendChild($slideBtnsCtnr);
         this.$ctnr.appendChild(this.$slidesCtnr);
+        this.$ctnr.appendChild($paginationCtnr);
     }
 
     displaySlides() {
@@ -93,5 +106,14 @@ class Slider {
 }
 
 class Pagination {
-    constructor(perPage, numberOfElements, callback, $ctnr) {}
+    constructor(paginationCtnr, totalPageNumber) {
+        this.totalPageNumber = totalPageNumber;
+        this.$ul = document.createElement('ul');
+        paginationCtnr.appendChild(this.$ul);
+        this.init();
+    }
+
+    init() {
+
+    }
 }
